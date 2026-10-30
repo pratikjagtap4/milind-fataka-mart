@@ -4,7 +4,7 @@
   "rewrites": [
     {
       "source": "/api/:path*",
-      "destination": "https://fataka-mart-api.onrender.com/api/:path*"
+      "destination": "https://milind-fataka-mart-backend.onrender.com/api/:path*"
     },
     {
       "source": "/(.*)",

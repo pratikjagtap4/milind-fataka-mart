@@ -15,8 +15,10 @@ RUN mvn clean package -DskipTests
 FROM eclipse-temurin:21-jre-alpine
 WORKDIR /app
 
-# Run as non-root user for security
-RUN addgroup -S fataka && adduser -S fataka -G fataka
+# Run as non-root user with write permissions to uploads directory
+RUN addgroup -S fataka && adduser -S fataka -G fataka \
+    && mkdir -p /app/uploads \
+    && chown -R fataka:fataka /app
 USER fataka
 
 # Copy jar from builder

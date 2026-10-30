@@ -1611,18 +1611,53 @@ export class DashboardComponent implements OnInit {
     }
   }
 
+  private compressImageFile(file: File): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (e: any) => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          let width = img.width;
+          let height = img.height;
+          const maxDim = 800;
+          if (width > maxDim || height > maxDim) {
+            if (width > height) {
+              height = Math.round((height * maxDim) / width);
+              width = maxDim;
+            } else {
+              width = Math.round((width * maxDim) / height);
+              height = maxDim;
+            }
+          }
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          if (ctx) {
+            ctx.drawImage(img, 0, 0, width, height);
+            resolve(canvas.toDataURL('image/jpeg', 0.85));
+          } else {
+            resolve(e.target.result);
+          }
+        };
+        img.onerror = () => resolve(e.target.result);
+        img.src = e.target.result;
+      };
+      reader.onerror = (err) => reject(err);
+      reader.readAsDataURL(file);
+    });
+  }
+
   onUploadCatImage(event: Event): void {
     const input = event.target as HTMLInputElement;
     if (input.files && input.files[0]) {
+      const file = input.files[0];
       this.isUploadingCat.set(true);
-      this.adminService.uploadImage(input.files[0]).subscribe({
-        next: (res) => {
-          if (res.success && res.data) {
-            this.catFormImage = res.data.url;
-          }
-          this.isUploadingCat.set(false);
-        },
-        error: () => this.isUploadingCat.set(false)
+      this.compressImageFile(file).then(dataUrl => {
+        this.catFormImage = dataUrl;
+        this.isUploadingCat.set(false);
+      }).catch(() => {
+        this.isUploadingCat.set(false);
       });
     }
   }
@@ -1630,15 +1665,13 @@ export class DashboardComponent implements OnInit {
   onUploadBpImage(event: Event): void {
     const input = event.target as HTMLInputElement;
     if (input.files && input.files[0]) {
+      const file = input.files[0];
       this.isUploadingBp.set(true);
-      this.adminService.uploadImage(input.files[0]).subscribe({
-        next: (res) => {
-          if (res.success && res.data) {
-            this.bpFormImage = res.data.url;
-          }
-          this.isUploadingBp.set(false);
-        },
-        error: () => this.isUploadingBp.set(false)
+      this.compressImageFile(file).then(dataUrl => {
+        this.bpFormImage = dataUrl;
+        this.isUploadingBp.set(false);
+      }).catch(() => {
+        this.isUploadingBp.set(false);
       });
     }
   }

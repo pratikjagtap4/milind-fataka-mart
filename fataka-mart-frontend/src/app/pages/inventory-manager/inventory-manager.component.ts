@@ -892,18 +892,53 @@ export class InventoryManagerComponent implements OnInit {
     });
   }
 
+  private compressImageFile(file: File): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (e: any) => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          let width = img.width;
+          let height = img.height;
+          const maxDim = 800;
+          if (width > maxDim || height > maxDim) {
+            if (width > height) {
+              height = Math.round((height * maxDim) / width);
+              width = maxDim;
+            } else {
+              width = Math.round((width * maxDim) / height);
+              height = maxDim;
+            }
+          }
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          if (ctx) {
+            ctx.drawImage(img, 0, 0, width, height);
+            resolve(canvas.toDataURL('image/jpeg', 0.85));
+          } else {
+            resolve(e.target.result);
+          }
+        };
+        img.onerror = () => resolve(e.target.result);
+        img.src = e.target.result;
+      };
+      reader.onerror = (err) => reject(err);
+      reader.readAsDataURL(file);
+    });
+  }
+
   onUploadProductPhoto(event: Event): void {
     const input = event.target as HTMLInputElement;
     if (input.files && input.files[0]) {
+      const file = input.files[0];
       this.isUploadingProdPhoto.set(true);
-      this.inventoryService.uploadImage(input.files[0]).subscribe({
-        next: (res) => {
-          if (res.success && res.data) {
-            this.newProdImageUrl = res.data.url;
-          }
-          this.isUploadingProdPhoto.set(false);
-        },
-        error: () => this.isUploadingProdPhoto.set(false)
+      this.compressImageFile(file).then(dataUrl => {
+        this.newProdImageUrl = dataUrl;
+        this.isUploadingProdPhoto.set(false);
+      }).catch(() => {
+        this.isUploadingProdPhoto.set(false);
       });
     }
   }
@@ -911,15 +946,13 @@ export class InventoryManagerComponent implements OnInit {
   onUploadCategoryPhoto(event: Event): void {
     const input = event.target as HTMLInputElement;
     if (input.files && input.files[0]) {
+      const file = input.files[0];
       this.isUploadingCatPhoto.set(true);
-      this.inventoryService.uploadImage(input.files[0]).subscribe({
-        next: (res) => {
-          if (res.success && res.data) {
-            this.newCatImageUrl = res.data.url;
-          }
-          this.isUploadingCatPhoto.set(false);
-        },
-        error: () => this.isUploadingCatPhoto.set(false)
+      this.compressImageFile(file).then(dataUrl => {
+        this.newCatImageUrl = dataUrl;
+        this.isUploadingCatPhoto.set(false);
+      }).catch(() => {
+        this.isUploadingCatPhoto.set(false);
       });
     }
   }

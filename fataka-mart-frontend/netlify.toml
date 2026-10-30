@@ -1,5 +1,5 @@
 [build]
-  publish = "dist/fataka-mart-frontend/browser"
+  publish = "dist/fataka-mart-frontend"
   command = "npm run build"
 
 [[redirects]]

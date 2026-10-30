@@ -1,0 +1,30 @@
+# Render Blueprint Specification for Milind Fataka Mart
+services:
+  # 1. Spring Boot 3 Backend Web Service
+  - type: web
+    name: fataka-mart-backend
+    runtime: docker
+    dockerfilePath: ./fataka-mart-backend/Dockerfile
+    dockerContext: ./fataka-mart-backend
+    plan: free
+    region: singapore # or frankfurt, oregon, ohio
+    envVars:
+      - key: PORT
+        value: 8080
+      - key: SPRING_PROFILES_ACTIVE
+        value: prod
+      # Cloud PostgreSQL connection (Connect your free Neon or Supabase DB)
+      - key: DB_HOST
+        sync: false
+      - key: DB_PORT
+        value: "5432"
+      - key: DB_NAME
+        value: "fatakamart"
+      - key: DB_USER
+        sync: false
+      - key: DB_PASS
+        sync: false
+      - key: DB_SSLMODE
+        value: "require"
+      - key: SPRING_DATASOURCE_URL
+        sync: false

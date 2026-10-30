@@ -1,0 +1,33 @@
+# Root .gitignore for Milind Fataka Mart
+
+# Node & Frontend
+**/node_modules/
+**/dist/
+**/.angular/cache/
+fataka-mart-frontend/dist/
+
+# Maven & Backend
+**/target/
+fataka-mart-backend/target/
+fataka-mart-backend/uploads/
+
+# IDE & Editor files
+.idea/
+.vscode/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+.classpath
+.project
+.settings/
+
+# Logs & temp
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS Files
+.DS_Store
+Thumbs.db

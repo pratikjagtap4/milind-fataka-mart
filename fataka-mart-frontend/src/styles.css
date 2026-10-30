@@ -1,0 +1,73 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  font-family: 'Outfit', 'Inter', system-ui, sans-serif;
+  color-scheme: light;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  max-width: 100vw;
+  overflow-x: hidden;
+  position: relative;
+  background-color: #fbf9f5;
+  color: #1e293b;
+  min-height: 100vh;
+}
+
+/* Ensure media and tables never force viewport expansion */
+img, svg, video, canvas, audio, iframe {
+  max-width: 100%;
+}
+
+.overflow-x-auto {
+  -webkit-overflow-scrolling: touch;
+  max-width: 100%;
+}
+
+/* Custom festive light cards & panels */
+.festive-card {
+  background: #ffffff;
+  border: 1px solid #fed7aa; /* amber-200 */
+  box-shadow: 0 4px 15px -2px rgba(245, 158, 11, 0.08), 0 2px 6px -2px rgba(0, 0, 0, 0.04);
+}
+
+.festive-panel-gold {
+  background: linear-gradient(135deg, rgba(254, 243, 199, 0.5), rgba(255, 237, 213, 0.4));
+  border: 1px solid #fcd34d;
+}
+
+/* Custom scrollbars */
+::-webkit-scrollbar {
+  width: 7px;
+  height: 7px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #f59e0b;
+}
+
+/* Animations */
+@keyframes spark {
+  0%, 100% { opacity: 0.5; transform: scale(0.98); }
+  50% { opacity: 1; transform: scale(1.02); }
+}
+
+.animate-spark {
+  animation: spark 3s infinite ease-in-out;
+}

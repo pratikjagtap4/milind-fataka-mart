@@ -1,0 +1,72 @@
+server:
+  port: 8080
+  servlet:
+    context-path: /api
+
+spring:
+  application:
+    name: fataka-mart-backend
+  
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:fatakamart}?currentSchema=public&sslmode=${DB_SSLMODE:prefer}}
+    username: ${DB_USER:postgres}
+    password: ${DB_PASS:postgres}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 15
+      minimum-idle: 5
+      idle-timeout: 30000
+      connection-timeout: 20000
+      max-lifetime: 1800000
+
+  sql:
+    init:
+      mode: never
+
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: true
+        jdbc:
+          lob:
+            non_contextual_creation: true
+
+  # File upload limits for product photos
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 25MB
+
+# Custom Fataka Mart Application Settings
+app:
+  jwt:
+    # 256-bit secure secret key
+    secret: 404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970
+    expiration-ms: 86400000 # 24 Hours
+    refresh-expiration-ms: 604800000 # 7 Days
+
+  cors:
+    allowed-origins:
+      - "http://localhost:4200"
+      - "http://127.0.0.1:4200"
+      - "https://fataka-mart.vercel.app"
+      - "https://fatakamart.netlify.app"
+
+  super-admin:
+    email: "npratikjagtap2704@gmail.com"
+    default-password: "Admin@123"
+    full-name: "Pratik Jagtap (Super Admin)"
+    mobile: "+91 91122 33445"
+
+# OpenAPI Swagger UI
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    tags-sorter: alpha
+    operations-sorter: method

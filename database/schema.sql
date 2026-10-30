@@ -205,7 +205,7 @@ CREATE INDEX idx_bill_items_bill_id ON bill_items(bill_id);
 
 -- 6.1 SHOPS (Sibling Branches)
 INSERT INTO shops (id, name, branch_code, address, city, state, contact_phone, default_overhead_percentage, gst_number) VALUES
-(1, 'Fataka Mart - Main Mega Store', 'FM-PUN-01', 'Shop 101, Market Yard, Swargate', 'Pune', 'Maharashtra', '+91 98765 43210', 25.00, '27AABCF1234M1Z2'),
+(1, 'Milind Phataka Mart branch 1', 'FM-BR1', 'Kapil vastu Buddha Vihar , Opp to pratibhatai pawar high school , Kondhwa Budhruk pun 411048', 'Pune', 'Maharashtra', '9284255457', 25.00, '27AABCF1234M1Z2'),
 (2, 'Fataka Mart - Station Branch', 'FM-PUN-02', 'Plot 45, Near Railway Station, Station Road', 'Pune', 'Maharashtra', '+91 98765 43211', 25.00, '27AABCF1234M1Z3'),
 (3, 'Fataka Mart - Highway Hub', 'FM-MUM-01', 'Gala 12, Western Express Highway, Goregaon', 'Mumbai', 'Maharashtra', '+91 98765 43212', 30.00, '27AABCF1234M1Z4'),
 (4, 'Fataka Mart - City Center', 'FM-NSK-01', 'College Road, Near Canada Corner', 'Nashik', 'Maharashtra', '+91 98765 43213', 20.00, '27AABCF1234M1Z5');
@@ -216,7 +216,7 @@ INSERT INTO shops (id, name, branch_code, address, city, state, contact_phone, d
 -- Customer 1: customer@fatakamart.com / Password: Customer@123
 INSERT INTO users (id, email, password_hash, full_name, mobile, role, shop_id, is_enabled) VALUES
 (1, 'npratikjagtap2704@gmail.com', '$2a$10$7XyHjXzZ.vE0jWqNqC3Vw.6nK4OqH0u3vF4yE2lE5jF1wM5hP2iSm', 'Pratik Jagtap (Super Admin)', '+91 91122 33445', 'SUPER_ADMIN', NULL, TRUE),
-(2, 'owner1@fatakamart.com', '$2a$10$7XyHjXzZ.vE0jWqNqC3Vw.6nK4OqH0u3vF4yE2lE5jF1wM5hP2iSm', 'Milind Patil (Pune Main Owner)', '+91 98220 12345', 'OWNER', 1, TRUE),
+(2, 'rajlagad@fatakamart.com', '$2a$10$7XyHjXzZ.vE0jWqNqC3Vw.6nK4OqH0u3vF4yE2lE5jF1wM5hP2iSm', 'raj millind lagad', '9284255457', 'OWNER', 1, TRUE),
 (3, 'owner2@fatakamart.com', '$2a$10$7XyHjXzZ.vE0jWqNqC3Vw.6nK4OqH0u3vF4yE2lE5jF1wM5hP2iSm', 'Sachin Shinde (Station Owner)', '+91 98220 54321', 'OWNER', 2, TRUE),
 (4, 'rajesh.patel@gmail.com', '$2a$10$7XyHjXzZ.vE0jWqNqC3Vw.6nK4OqH0u3vF4yE2lE5jF1wM5hP2iSm', 'Rajesh Patel', '+91 98900 11223', 'CUSTOMER', NULL, TRUE);
 

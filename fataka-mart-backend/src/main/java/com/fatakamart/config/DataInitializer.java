@@ -54,10 +54,10 @@ public class DataInitializer implements CommandLineRunner {
                 .orElse(new Shop());
         shop1.setName("Milind Phataka Mart branch 1");
         shop1.setBranchCode("FM-BR1");
-        shop1.setAddress("Kapil vastu Budhha Vihar, Kondhwa Budhruk");
+        shop1.setAddress("Kapil vastu Buddha Vihar , Opp to pratibhatai pawar high school , Kondhwa Budhruk pun 411048");
         shop1.setCity("Pune");
         shop1.setState("Maharashtra");
-        shop1.setContactPhone("8390608383");
+        shop1.setContactPhone("9284255457");
         shop1.setDefaultOverheadPercentage(new BigDecimal("25.00"));
         shop1.setIsActive(true);
         shop1 = shopRepository.save(shop1);
@@ -100,7 +100,7 @@ public class DataInitializer implements CommandLineRunner {
                 .or(() -> userRepository.findByEmail("rajlagad@fatakamart.com"))
                 .orElse(new User());
         raj.setEmail("rajlagad@fatakamart.com");
-        raj.setFullName("Raj Lagad");
+        raj.setFullName("raj millind lagad");
         raj.setMobile("9284255457");
         raj.setRole(Role.OWNER);
         raj.setShop(shop1);

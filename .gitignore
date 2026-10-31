@@ -10,6 +10,8 @@ fataka-mart-frontend/dist/
 **/target/
 fataka-mart-backend/target/
 fataka-mart-backend/uploads/
+fataka-mart-backend/data/
+*.mv.db
 
 # IDE & Editor files
 .idea/

@@ -888,7 +888,11 @@ export class InventoryManagerComponent implements OnInit {
         this.newProdName = '';
         this.newProdImageUrl = '';
       },
-      error: () => this.isSavingProduct.set(false)
+      error: (err) => {
+        this.isSavingProduct.set(false);
+        const errorMsg = err.error?.message || err.message || 'Failed to save product. Please try again.';
+        alert(errorMsg);
+      }
     });
   }
 
@@ -901,7 +905,7 @@ export class InventoryManagerComponent implements OnInit {
           const canvas = document.createElement('canvas');
           let width = img.width;
           let height = img.height;
-          const maxDim = 800;
+          const maxDim = 600;
           if (width > maxDim || height > maxDim) {
             if (width > height) {
               height = Math.round((height * maxDim) / width);
@@ -916,12 +920,12 @@ export class InventoryManagerComponent implements OnInit {
           const ctx = canvas.getContext('2d');
           if (ctx) {
             ctx.drawImage(img, 0, 0, width, height);
-            resolve(canvas.toDataURL('image/jpeg', 0.85));
+            resolve(canvas.toDataURL('image/jpeg', 0.75));
           } else {
             resolve(e.target.result);
           }
         };
-        img.onerror = () => resolve(e.target.result);
+        img.onerror = () => reject(new Error('Unable to process this image format. Please select a JPG or PNG.'));
         img.src = e.target.result;
       };
       reader.onerror = (err) => reject(err);

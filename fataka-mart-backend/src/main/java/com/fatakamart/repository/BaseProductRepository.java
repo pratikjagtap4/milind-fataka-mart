@@ -11,4 +11,5 @@ public interface BaseProductRepository extends JpaRepository<BaseProduct, Long> 
     List<BaseProduct> findByCategoryIdAndIsActiveTrue(Long categoryId);
     List<BaseProduct> findByIsActiveTrue();
     List<BaseProduct> findByNameContainingIgnoreCaseOrCompanyNameContainingIgnoreCase(String name, String companyName);
+    java.util.Optional<BaseProduct> findByNameIgnoreCaseAndCompanyNameIgnoreCase(String name, String companyName);
 }

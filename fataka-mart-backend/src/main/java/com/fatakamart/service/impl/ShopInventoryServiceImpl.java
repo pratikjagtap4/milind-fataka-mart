@@ -108,45 +108,84 @@ public class ShopInventoryServiceImpl implements ShopInventoryService {
     @Override
     @Transactional
     public OwnerInventoryDTO quickCreateProduct(QuickCreateProductRequest request) {
-        Shop shop = shopRepository.findById(request.getShopId())
-                .orElseThrow(() -> new RuntimeException("Shop not found with id: " + request.getShopId()));
+        Long shopId = java.util.Objects.requireNonNull(request.getShopId(), "Shop ID cannot be null");
+        Shop shop = shopRepository.findById(shopId)
+                .orElseThrow(() -> new RuntimeException("Shop not found with id: " + shopId));
 
-        Category category = categoryRepository.findById(request.getCategoryId())
-                .orElseThrow(() -> new RuntimeException("Category not found with id: " + request.getCategoryId()));
+        Long categoryId = java.util.Objects.requireNonNull(request.getCategoryId(), "Category ID cannot be null");
+        Category category = categoryRepository.findById(categoryId)
+                .orElseThrow(() -> new RuntimeException("Category not found with id: " + categoryId));
 
-        BaseProduct baseProduct = BaseProduct.builder()
-                .category(category)
-                .name(request.getName().trim())
-                .companyName(request.getCompanyName().trim())
-                .packDescription(request.getPackDescription().trim())
-                .defaultPurchasePrice(request.getPurchasePrice())
-                .defaultSellingPrice(request.getSellingPrice())
-                .imageUrl1(request.getImageUrl1())
-                .safetyInstructions(request.getSafetyInstructions())
-                .isActive(true)
-                .build();
-        baseProduct = baseProductRepository.save(baseProduct);
+        String prodName = request.getName() != null ? request.getName().trim() : "Custom Product";
+        String compName = request.getCompanyName() != null ? request.getCompanyName().trim() : "Standard Fireworks";
+        String packDesc = request.getPackDescription() != null ? request.getPackDescription().trim() : "1 Box";
+
+        // Find existing master product or create new one
+        BaseProduct baseProduct = baseProductRepository.findByNameIgnoreCaseAndCompanyNameIgnoreCase(prodName, compName)
+                .orElse(null);
+
+        if (baseProduct != null) {
+            baseProduct.setCategory(category);
+            baseProduct.setPackDescription(packDesc);
+            baseProduct.setDefaultPurchasePrice(request.getPurchasePrice());
+            baseProduct.setDefaultSellingPrice(request.getSellingPrice());
+            if (request.getImageUrl1() != null && !request.getImageUrl1().isBlank()) {
+                baseProduct.setImageUrl1(request.getImageUrl1());
+            }
+            if (request.getSafetyInstructions() != null) {
+                baseProduct.setSafetyInstructions(request.getSafetyInstructions());
+            }
+            baseProduct.setIsActive(true);
+            baseProduct = baseProductRepository.save(baseProduct);
+        } else {
+            baseProduct = BaseProduct.builder()
+                    .category(category)
+                    .name(prodName)
+                    .companyName(compName)
+                    .packDescription(packDesc)
+                    .defaultPurchasePrice(request.getPurchasePrice())
+                    .defaultSellingPrice(request.getSellingPrice())
+                    .imageUrl1(request.getImageUrl1())
+                    .safetyInstructions(request.getSafetyInstructions())
+                    .isActive(true)
+                    .build();
+            baseProduct = baseProductRepository.save(baseProduct);
+        }
 
         BigDecimal overheadPct = request.getOverheadPercentage() != null
                 ? request.getOverheadPercentage()
                 : shop.getDefaultOverheadPercentage();
 
-        ShopInventory inventory = ShopInventory.builder()
-                .shop(shop)
-                .baseProduct(baseProduct)
-                .customName(baseProduct.getName())
-                .purchasePrice(request.getPurchasePrice())
-                .overheadPercentage(overheadPct)
-                .sellingPrice(request.getSellingPrice())
-                .stockQuantity(request.getStockQuantity() != null ? request.getStockQuantity() : 0)
-                .lowStockThreshold(10)
-                .isActive(true)
-                .build();
+        // Check if item already exists in this shop inventory
+        final Long bpId = baseProduct.getId();
+        ShopInventory inventory = shopInventoryRepository.findByShopIdAndBaseProductId(shop.getId(), bpId)
+                .orElse(null);
+
+        if (inventory != null) {
+            inventory.setCustomName(baseProduct.getName());
+            inventory.setPurchasePrice(request.getPurchasePrice());
+            inventory.setOverheadPercentage(overheadPct);
+            inventory.setSellingPrice(request.getSellingPrice());
+            inventory.setStockQuantity(request.getStockQuantity() != null ? request.getStockQuantity() : inventory.getStockQuantity());
+            inventory.setIsActive(true);
+        } else {
+            inventory = ShopInventory.builder()
+                    .shop(shop)
+                    .baseProduct(baseProduct)
+                    .customName(baseProduct.getName())
+                    .purchasePrice(request.getPurchasePrice())
+                    .overheadPercentage(overheadPct)
+                    .sellingPrice(request.getSellingPrice())
+                    .stockQuantity(request.getStockQuantity() != null ? request.getStockQuantity() : 0)
+                    .lowStockThreshold(10)
+                    .isActive(true)
+                    .build();
+        }
 
         inventory.calculatePricingRules();
         OwnerInventoryDTO result = mapToOwnerDTO(shopInventoryRepository.save(inventory));
 
-        // Point 7: If applyToAllShops is true, automatically assign to all sibling branches too
+        // If applyToAllShops is true, assign/update in sibling branches too
         if (Boolean.TRUE.equals(request.getApplyToAllShops())) {
             List<Shop> allShops = shopRepository.findAll();
             for (Shop otherShop : allShops) {
@@ -155,17 +194,28 @@ public class ShopInventoryServiceImpl implements ShopInventoryService {
                             ? request.getOverheadPercentage()
                             : otherShop.getDefaultOverheadPercentage();
 
-                    ShopInventory otherInv = ShopInventory.builder()
-                            .shop(otherShop)
-                            .baseProduct(baseProduct)
-                            .customName(baseProduct.getName())
-                            .purchasePrice(request.getPurchasePrice())
-                            .overheadPercentage(otherOv)
-                            .sellingPrice(request.getSellingPrice())
-                            .stockQuantity(request.getStockQuantity() != null ? request.getStockQuantity() : 0)
-                            .lowStockThreshold(10)
-                            .isActive(true)
-                            .build();
+                    ShopInventory otherInv = shopInventoryRepository.findByShopIdAndBaseProductId(otherShop.getId(), bpId)
+                            .orElse(null);
+
+                    if (otherInv != null) {
+                        otherInv.setCustomName(baseProduct.getName());
+                        otherInv.setPurchasePrice(request.getPurchasePrice());
+                        otherInv.setOverheadPercentage(otherOv);
+                        otherInv.setSellingPrice(request.getSellingPrice());
+                        otherInv.setIsActive(true);
+                    } else {
+                        otherInv = ShopInventory.builder()
+                                .shop(otherShop)
+                                .baseProduct(baseProduct)
+                                .customName(baseProduct.getName())
+                                .purchasePrice(request.getPurchasePrice())
+                                .overheadPercentage(otherOv)
+                                .sellingPrice(request.getSellingPrice())
+                                .stockQuantity(request.getStockQuantity() != null ? request.getStockQuantity() : 0)
+                                .lowStockThreshold(10)
+                                .isActive(true)
+                                .build();
+                    }
 
                     otherInv.calculatePricingRules();
                     shopInventoryRepository.save(otherInv);

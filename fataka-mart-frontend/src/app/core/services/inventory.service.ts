@@ -90,7 +90,15 @@ export class InventoryService {
     return this.http.post<ApiResponse<OwnerInventory>>(`${this.apiUrl}/quick-create`, request).pipe(
       tap(res => {
         if (res.success && res.data) {
-          this.inventory.set([res.data, ...this.inventory()]);
+          const current = this.inventory();
+          const idx = current.findIndex(item => item.id === res.data.id || (item.baseProductId === res.data.baseProductId && item.shopId === res.data.shopId));
+          if (idx !== -1) {
+            const updated = [...current];
+            updated[idx] = res.data;
+            this.inventory.set(updated);
+          } else {
+            this.inventory.set([res.data, ...current]);
+          }
         }
       })
     );

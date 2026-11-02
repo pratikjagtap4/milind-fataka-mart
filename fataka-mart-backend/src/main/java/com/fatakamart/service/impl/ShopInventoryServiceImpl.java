@@ -161,12 +161,17 @@ public class ShopInventoryServiceImpl implements ShopInventoryService {
         ShopInventory inventory = shopInventoryRepository.findByShopIdAndBaseProductId(shop.getId(), bpId)
                 .orElse(null);
 
+        int lowStock = request.getLowStockThreshold() != null ? request.getLowStockThreshold() : 10;
+
         if (inventory != null) {
             inventory.setCustomName(baseProduct.getName());
             inventory.setPurchasePrice(request.getPurchasePrice());
             inventory.setOverheadPercentage(overheadPct);
             inventory.setSellingPrice(request.getSellingPrice());
             inventory.setStockQuantity(request.getStockQuantity() != null ? request.getStockQuantity() : inventory.getStockQuantity());
+            if (request.getLowStockThreshold() != null) {
+                inventory.setLowStockThreshold(request.getLowStockThreshold());
+            }
             inventory.setIsActive(true);
         } else {
             inventory = ShopInventory.builder()
@@ -177,7 +182,7 @@ public class ShopInventoryServiceImpl implements ShopInventoryService {
                     .overheadPercentage(overheadPct)
                     .sellingPrice(request.getSellingPrice())
                     .stockQuantity(request.getStockQuantity() != null ? request.getStockQuantity() : 0)
-                    .lowStockThreshold(10)
+                    .lowStockThreshold(lowStock)
                     .isActive(true)
                     .build();
         }
@@ -202,6 +207,9 @@ public class ShopInventoryServiceImpl implements ShopInventoryService {
                         otherInv.setPurchasePrice(request.getPurchasePrice());
                         otherInv.setOverheadPercentage(otherOv);
                         otherInv.setSellingPrice(request.getSellingPrice());
+                        if (request.getLowStockThreshold() != null) {
+                            otherInv.setLowStockThreshold(request.getLowStockThreshold());
+                        }
                         otherInv.setIsActive(true);
                     } else {
                         otherInv = ShopInventory.builder()
@@ -212,7 +220,7 @@ public class ShopInventoryServiceImpl implements ShopInventoryService {
                                 .overheadPercentage(otherOv)
                                 .sellingPrice(request.getSellingPrice())
                                 .stockQuantity(request.getStockQuantity() != null ? request.getStockQuantity() : 0)
-                                .lowStockThreshold(10)
+                                .lowStockThreshold(lowStock)
                                 .isActive(true)
                                 .build();
                     }

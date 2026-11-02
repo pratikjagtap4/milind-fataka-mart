@@ -858,42 +858,86 @@ export class InventoryManagerComponent implements OnInit {
     return this.computeNewOverheadPrice() * 1.50;
   }
 
+  private compressDataUrl(dataUrl: string): Promise<string> {
+    if (!dataUrl.startsWith('data:image/')) return Promise.resolve(dataUrl);
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        let width = img.width;
+        let height = img.height;
+        const maxDim = 500;
+        if (width > maxDim || height > maxDim) {
+          if (width > height) {
+            height = Math.round((height * maxDim) / width);
+            width = maxDim;
+          } else {
+            width = Math.round((width * maxDim) / height);
+            height = maxDim;
+          }
+        }
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+          ctx.drawImage(img, 0, 0, width, height);
+          resolve(canvas.toDataURL('image/jpeg', 0.7));
+        } else {
+          resolve(dataUrl);
+        }
+      };
+      img.onerror = () => resolve(dataUrl);
+      img.src = dataUrl;
+    });
+  }
+
   onAddProductSubmit(e: Event): void {
     e.preventDefault();
     const shopId = this.catalogService.selectedShop()?.id || 1;
+    const rawImg = this.newProdImageUrl ? this.newProdImageUrl.trim() : '';
 
-    const req: QuickCreateProductRequest = {
-      shopId,
-      categoryId: Number(this.newProdCategoryId),
-      productName: this.newProdName,
-      companyName: this.newProdCompany,
-      packDescription: this.newProdPack,
-      imageUrl: this.newProdImageUrl.trim() || undefined,
-      purchasePrice: this.newProdPurchasePrice,
-      overheadPercentage: this.newProdOverheadPct,
-      sellingPrice: this.newProdSellingPrice,
-      initialStock: this.newProdStock,
-      lowStockThreshold: this.newProdLowStock,
-      applyToAllShops: this.newProdApplyToAllShops
+    const executeSave = (finalImageUrl?: string) => {
+      const req: QuickCreateProductRequest = {
+        shopId,
+        categoryId: Number(this.newProdCategoryId),
+        productName: this.newProdName.trim(),
+        companyName: this.newProdCompany.trim(),
+        packDescription: this.newProdPack.trim(),
+        imageUrl: finalImageUrl || undefined,
+        purchasePrice: this.newProdPurchasePrice,
+        overheadPercentage: this.newProdOverheadPct,
+        sellingPrice: this.newProdSellingPrice,
+        initialStock: this.newProdStock,
+        lowStockThreshold: this.newProdLowStock,
+        applyToAllShops: this.newProdApplyToAllShops
+      };
+
+      this.isSavingProduct.set(true);
+      this.inventoryService.quickCreateProduct(req).subscribe({
+        next: (res) => {
+          this.isSavingProduct.set(false);
+          this.isAddProductOpen.set(false);
+          // Refresh inventory to display new product
+          this.inventoryService.loadShopInventory(shopId).subscribe();
+          alert(`Product "${req.productName}" saved and stocked in shop inventory successfully!`);
+          // Reset form
+          this.newProdName = '';
+          this.newProdImageUrl = '';
+        },
+        error: (err) => {
+          this.isSavingProduct.set(false);
+          const errorMsg = err.error?.message || err.message || 'Failed to save product. Please try again.';
+          alert(errorMsg);
+        }
+      });
     };
 
-    this.isSavingProduct.set(true);
-    this.inventoryService.quickCreateProduct(req).subscribe({
-      next: () => {
-        this.isSavingProduct.set(false);
-        this.isAddProductOpen.set(false);
-        // Refresh inventory to display new product
-        this.inventoryService.loadShopInventory(shopId).subscribe();
-        // Reset form
-        this.newProdName = '';
-        this.newProdImageUrl = '';
-      },
-      error: (err) => {
-        this.isSavingProduct.set(false);
-        const errorMsg = err.error?.message || err.message || 'Failed to save product. Please try again.';
-        alert(errorMsg);
-      }
-    });
+    if (rawImg.startsWith('data:image/')) {
+      this.isSavingProduct.set(true);
+      this.compressDataUrl(rawImg).then(optimizedImg => executeSave(optimizedImg));
+    } else {
+      executeSave(rawImg || undefined);
+    }
   }
 
   private compressImageFile(file: File): Promise<string> {

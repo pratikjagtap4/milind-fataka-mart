@@ -51,6 +51,9 @@ public class QuickCreateProductRequest {
     @JsonAlias({"imageUrl1", "imageUrl", "photoUrl", "image"})
     private String imageUrl1;
 
+    @JsonAlias({"lowStockThreshold", "lowStock"})
+    private Integer lowStockThreshold;
+
     private String safetyInstructions;
 
     @Builder.Default

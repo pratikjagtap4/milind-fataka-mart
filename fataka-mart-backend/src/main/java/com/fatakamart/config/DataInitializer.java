@@ -273,12 +273,14 @@ public class DataInitializer implements CommandLineRunner {
             }
         }
 
-        // Also ensure both shops have inventory even if categories already existed
-        List<BaseProduct> allBaseProducts = baseProductRepository.findAll();
-        for (Shop shop : List.of(shop1, shop2)) {
-            for (BaseProduct bp : allBaseProducts) {
-                if (!shopInventoryRepository.existsByShopIdAndBaseProductId(shop.getId(), bp.getId())) {
-                    createInventoryItem(shop, bp, bp.getDefaultPurchasePrice(), bp.getDefaultSellingPrice(), 100);
+        // Only seed inventory if database is completely fresh and has no inventory records
+        if (shopInventoryRepository.count() == 0) {
+            List<BaseProduct> allBaseProducts = baseProductRepository.findAll();
+            for (Shop shop : List.of(shop1, shop2)) {
+                for (BaseProduct bp : allBaseProducts) {
+                    if (!shopInventoryRepository.existsByShopIdAndBaseProductId(shop.getId(), bp.getId())) {
+                        createInventoryItem(shop, bp, bp.getDefaultPurchasePrice(), bp.getDefaultSellingPrice(), 100);
+                    }
                 }
             }
         }

@@ -35,11 +35,21 @@ interface CategoryGroup {
               Category-Wise Breakdown
             </span>
           </div>
-          <p class="text-xs text-slate-500 mt-0.5">
-            Branch: <strong class="text-amber-700 font-semibold">{{ catalogService.selectedShop()?.name || 'Main Branch' }}</strong> |
-            Total Items: <span class="font-bold text-slate-900">{{ inventoryService.totalItemsCount() }}</span> |
-            Low Stock: <span class="font-bold" [class]="inventoryService.lowStockCount() > 0 ? 'text-red-600' : 'text-slate-600'">{{ inventoryService.lowStockCount() }}</span>
-          </p>
+          <div class="flex flex-wrap items-center gap-2 text-xs text-slate-500 mt-1">
+            <span class="font-bold text-slate-700">Branch:</span>
+            <select 
+              [value]="catalogService.selectedShop()?.id"
+              (change)="onInventoryBranchChange($event)"
+              class="px-2.5 py-1 rounded-xl bg-white border border-amber-300 text-xs font-bold text-amber-900 focus:outline-none focus:ring-2 focus:ring-amber-500 cursor-pointer shadow-2xs">
+              @for (shop of catalogService.shops(); track shop.id) {
+                <option [value]="shop.id">{{ shop.name }}</option>
+              }
+            </select>
+            <span class="text-slate-300">|</span>
+            <span>Total Items: <strong class="text-slate-900">{{ inventoryService.totalItemsCount() }}</strong></span>
+            <span class="text-slate-300">|</span>
+            <span>Low Stock: <strong [class]="inventoryService.lowStockCount() > 0 ? 'text-red-600' : 'text-slate-600'">{{ inventoryService.lowStockCount() }}</strong></span>
+          </div>
         </div>
 
         <!-- ACTION BUTTONS: ADD PRODUCT, ADD CATEGORY, SEARCH -->
@@ -824,9 +834,23 @@ export class InventoryManagerComponent implements OnInit {
   });
 
   ngOnInit(): void {
-    const shopId = this.catalogService.selectedShop()?.id || 1;
-    this.inventoryService.loadShopInventory(shopId).subscribe();
+    this.catalogService.loadActiveShops().subscribe({
+      next: () => {
+        const currentShopId = this.catalogService.selectedShop()?.id || 1;
+        this.inventoryService.loadShopInventory(currentShopId).subscribe();
+      }
+    });
     this.catalogService.loadCategories().subscribe();
+  }
+
+  onInventoryBranchChange(event: Event): void {
+    const target = event.target as HTMLSelectElement;
+    const shopId = Number(target.value);
+    const shop = this.catalogService.shops().find(s => s.id === shopId);
+    if (shop) {
+      this.catalogService.selectShop(shop);
+      this.inventoryService.loadShopInventory(shop.id).subscribe();
+    }
   }
 
   onImgError(event: Event): void {
@@ -1106,6 +1130,8 @@ export class InventoryManagerComponent implements OnInit {
         next: (res) => {
           if (res.success) {
             alert('Product removed from shop inventory successfully.');
+            const currentShopId = this.catalogService.selectedShop()?.id || 1;
+            this.inventoryService.loadShopInventory(currentShopId).subscribe();
           }
         },
         error: (err) => {

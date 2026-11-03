@@ -45,11 +45,19 @@ export class CatalogService {
   loadActiveShops(): Observable<ApiResponse<Shop[]>> {
     return this.http.get<ApiResponse<Shop[]>>(`${this.apiUrl}/shops`).pipe(
       tap(res => {
-        if (res.success && res.data) {
+        if (res.success && res.data && res.data.length > 0) {
           this.shops.set(res.data);
-          if (!this.selectedShop() && res.data.length > 0) {
-            this.selectedShop.set(res.data[0]);
+          const savedShopId = localStorage.getItem('fm_selected_shop_id');
+          let targetShop: Shop | undefined;
+          if (savedShopId) {
+            targetShop = res.data.find(s => s.id === Number(savedShopId));
           }
+          if (!targetShop) {
+            targetShop = res.data[0];
+          }
+          this.selectedShop.set(targetShop);
+          localStorage.setItem('fm_selected_shop_id', String(targetShop.id));
+          this.loadProducts(targetShop.id).subscribe();
         }
       })
     );
@@ -67,8 +75,9 @@ export class CatalogService {
 
   loadProducts(shopId?: number, categoryId?: number, search?: string): Observable<ApiResponse<CustomerProduct[]>> {
     this.isLoading.set(true);
+    const targetShopId = shopId || this.selectedShop()?.id;
     let params: any = {};
-    if (shopId) params.shopId = shopId;
+    if (targetShopId) params.shopId = targetShopId;
     if (categoryId) params.categoryId = categoryId;
     if (search) params.search = search;
 
@@ -87,6 +96,7 @@ export class CatalogService {
 
   selectShop(shop: Shop): void {
     this.selectedShop.set(shop);
+    localStorage.setItem('fm_selected_shop_id', String(shop.id));
     this.loadProducts(shop.id).subscribe();
   }
 

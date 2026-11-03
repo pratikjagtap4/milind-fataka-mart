@@ -32,11 +32,25 @@ import { ProductModalComponent } from '../../components/product-modal/product-mo
             Enjoy direct wholesale savings across all 4 sibling retail branches!
           </p>
 
-          <!-- Branch Location Indicator -->
-          <div class="mt-5 inline-flex items-center gap-2 px-4 py-2 rounded-2xl bg-white border border-amber-200 text-xs text-amber-900 shadow-sm">
-            <span>📍 Currently Browsing:</span>
-            <span class="font-bold text-slate-900">{{ catalogService.selectedShop()?.name || 'Main Mega Store' }}</span>
-            <span class="text-slate-500">({{ catalogService.selectedShop()?.city }})</span>
+          <!-- Interactive Branch Selector -->
+          <div class="mt-5 max-w-2xl mx-auto flex flex-col sm:flex-row items-center justify-center gap-2.5">
+            <span class="text-xs font-bold text-amber-950 flex items-center gap-1">
+              <span>📍</span> Active Shop Branch:
+            </span>
+            <div class="flex flex-wrap items-center justify-center gap-1.5 p-1 rounded-2xl bg-white border border-amber-300 shadow-sm">
+              @for (shop of catalogService.shops(); track shop.id) {
+                <button 
+                  type="button"
+                  (click)="catalogService.selectShop(shop)"
+                  [class]="catalogService.selectedShop()?.id === shop.id 
+                    ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white font-bold shadow-xs' 
+                    : 'text-slate-700 hover:bg-amber-50 font-medium'"
+                  class="px-3.5 py-1.5 rounded-xl text-xs transition cursor-pointer flex items-center gap-1.5">
+                  <span>🏬</span>
+                  <span>{{ shop.name }}</span>
+                </button>
+              }
+            </div>
           </div>
 
           <!-- Search Input -->
@@ -231,7 +245,6 @@ export class StorefrontComponent implements OnInit {
   ngOnInit(): void {
     this.catalogService.loadActiveShops().subscribe();
     this.catalogService.loadCategories().subscribe();
-    this.catalogService.loadProducts().subscribe();
   }
 
   resetFilters(): void {

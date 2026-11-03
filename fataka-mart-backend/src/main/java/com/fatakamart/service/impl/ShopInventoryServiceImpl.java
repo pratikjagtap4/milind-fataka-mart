@@ -240,7 +240,7 @@ public class ShopInventoryServiceImpl implements ShopInventoryService {
         Shop sourceShop = shopRepository.findById(sourceShopId)
                 .orElseThrow(() -> new RuntimeException("Source shop not found with id: " + sourceShopId));
 
-        List<ShopInventory> sourceItems = shopInventoryRepository.findByShopId(sourceShopId);
+        List<ShopInventory> sourceItems = shopInventoryRepository.findByShopIdAndIsActiveTrue(sourceShopId);
         List<Shop> targetShops;
         if (targetShopId != null) {
             targetShops = shopRepository.findAll().stream()
@@ -254,7 +254,7 @@ public class ShopInventoryServiceImpl implements ShopInventoryService {
 
         int syncedCount = 0;
         for (Shop targetShop : targetShops) {
-            List<ShopInventory> targetItems = shopInventoryRepository.findByShopId(targetShop.getId());
+            List<ShopInventory> targetItems = shopInventoryRepository.findByShopIdAndIsActiveTrue(targetShop.getId());
             java.util.Set<Long> existingBaseProductIds = targetItems.stream()
                     .map(inv -> inv.getBaseProduct().getId())
                     .collect(java.util.stream.Collectors.toSet());
